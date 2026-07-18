@@ -61,6 +61,3 @@ export async function generateImage(prompt: string): Promise<GenerateResult> {
 
   return res.json();
 }
-
-  return res.json();
-}
