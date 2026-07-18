@@ -31,7 +31,12 @@ export interface GenerateResult {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
-async function fetchWithRetry(url: string, options: RequestInit, retries = 3, delay = 5000): Promise<Response> {
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit,
+  retries = 3,
+  delay = 5000
+): Promise<Response> {
   for (let attempt = 1; attempt <= retries; attempt++) {
     const res = await fetch(url, options);
     const contentType = res.headers.get("content-type") || "";
@@ -47,7 +52,9 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 3, de
   throw new Error("Server is waking up, please try again in a moment");
 }
 
-export async function generateImage(prompt: string): Promise<GenerateResult> {
+export async function generateImage(
+  prompt: string
+): Promise<GenerateResult> {
   const res = await fetchWithRetry(`${API_URL}/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
