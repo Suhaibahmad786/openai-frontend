@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, CornerDownLeft } from "lucide-react";
 
 const EXAMPLES = [
   "neon falcon with geometric wings",
   "ethereal forest cathedral at twilight",
   "steampunk owl with brass feathers",
   "cyberpunk samurai in rain-soaked alley",
+  "astronaut riding a whale through nebula",
 ];
 
 interface Props {
@@ -23,64 +24,71 @@ export default function PromptInput({ onGenerate, loading }: Props) {
     if (prompt.trim() && !loading) onGenerate(prompt.trim());
   };
 
+  const chars = prompt.length;
+  const max = 500;
+
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto space-y-4">
-      <div className="relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-accent-600 via-accent-400 to-cyan-500 rounded-2xl opacity-20 group-focus-within:opacity-40 blur transition duration-500" />
-        <textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe the image you want to generate..."
-          rows={3}
-          className="relative w-full bg-surface-950/80 border border-surface-700/50 rounded-xl px-5 py-4 text-lg text-surface-50 placeholder-surface-400 focus:outline-none focus:border-accent-500/50 focus:ring-2 focus:ring-accent-500/20 transition-all resize-none"
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-              handleSubmit(e);
-            }
-          }}
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
+      <div className="space-y-4">
+        <div className="input-area p-1.5">
+          <textarea
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value.slice(0, max))}
+            placeholder="Describe the image you want to create..."
+            rows={3}
+            className="w-full bg-transparent border-0 px-4 py-3.5 text-[15px] sm:text-base text-[#e8eaf0] placeholder:text-[#4a4e63] focus:outline-none focus:ring-0 resize-none leading-relaxed"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSubmit(e);
+            }}
+            disabled={loading}
+          />
 
-      <div className="flex flex-wrap gap-2">
-        {EXAMPLES.map((ex) => (
-          <button
-            key={ex}
-            type="button"
-            onClick={() => setPrompt(ex)}
-            className="text-xs px-3 py-1.5 rounded-full border border-surface-700/50 text-surface-400 hover:text-surface-200 hover:border-accent-500/30 hover:bg-accent-500/5 transition-all"
-          >
-            {ex}
-          </button>
-        ))}
-      </div>
+          <div className="flex items-center justify-between px-4 pb-2.5">
+            <div className="flex items-center gap-3">
+              <span className="text-[11px] text-[#3d4059] tabular-nums font-medium">
+                {chars}/{max}
+              </span>
+              <div className="hidden sm:flex items-center gap-1 text-[11px] text-[#3d4059]">
+                <CornerDownLeft className="w-3 h-3" />
+                <span className="font-medium">Ctrl+Enter</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-      <button
-        type="submit"
-        disabled={loading || !prompt.trim()}
-        className="relative w-full py-3.5 rounded-xl font-semibold text-base transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed group"
-      >
-        <div className="absolute inset-0 bg-gradient-to-r from-accent-600 to-accent-500 rounded-xl opacity-100 group-hover:opacity-90 transition-opacity" />
-        <div className="absolute inset-0 rounded-xl bg-[linear-gradient(60deg,transparent_30%,rgba(255,255,255,0.1)_50%,transparent_70%)] bg-[length:200%_100%] group-hover:animate-shimmer" />
-        <span className="relative flex items-center justify-center gap-2">
+        <div className="flex flex-wrap gap-2 justify-center px-2">
+          {EXAMPLES.map((ex) => (
+            <button
+              key={ex}
+              type="button"
+              onClick={() => setPrompt(ex)}
+              disabled={loading}
+              className="chip"
+            >
+              {ex}
+            </button>
+          ))}
+        </div>
+
+        <button type="submit" disabled={loading || !prompt.trim()} className="gen-button">
           {loading ? (
             <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Generating...
+              <Loader2 className="w-[18px] h-[18px] animate-spin" />
+              <span>Generating</span>
+              <span className="inline-flex gap-0.5">
+                <span className="animate-bounce [animation-delay:0ms]">.</span>
+                <span className="animate-bounce [animation-delay:150ms]">.</span>
+                <span className="animate-bounce [animation-delay:300ms]">.</span>
+              </span>
             </>
           ) : (
             <>
-              <Sparkles className="w-5 h-5" />
-              Generate Image
+              <Sparkles className="w-[18px] h-[18px]" />
+              <span>Generate Image</span>
             </>
           )}
-        </span>
-      </button>
-
-      {!loading && (
-        <p className="text-center text-xs text-surface-500">
-          Press Cmd+Enter to generate
-        </p>
-      )}
+        </button>
+      </div>
     </form>
   );
 }
