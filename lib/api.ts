@@ -38,23 +38,25 @@ export interface SSEEvent {
   message?: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-
-const REQUEST_TIMEOUT = 120_000;
-
-async function fetchWithTimeout(
-  url: string,
-  options: RequestInit,
-  timeout = REQUEST_TIMEOUT
-): Promise<Response> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeout);
-  try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
-    return res;
-  } finally {
-    clearTimeout(timer);
+function getApiUrl(): string {
+  if (typeof window !== "undefined") {
+    const envUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (envUrl && !envUrl.includes("localhost")) return envUrl;
+    return "http://localhost:4000";
   }
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+}
+
+const API_URL = getApiUrl();
+
+const REQUEST_TIMEOUT = 180_000;
+
+function isLocalhost(): boolean {
+  if (typeof window === "undefined") return false;
+  return (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+  );
 }
 
 export async function generateImage(
@@ -81,6 +83,19 @@ export async function generateImage(
     }
 
     return res.json();
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error("Request timed out. The server may be waking up, please try again.");
+    }
+    if (err instanceof TypeError && err.message.includes("fetch")) {
+      throw new Error(
+        `Cannot reach the backend at ${API_URL}. ` +
+        (isLocalhost()
+          ? "Make sure the backend is running on port 4000."
+          : "The server may be starting up, please try again in a moment.")
+      );
+    }
+    throw err;
   } finally {
     clearTimeout(timer);
     signal?.removeEventListener("abort", onAbort);
@@ -141,7 +156,18 @@ export function generateStream(
     })
     .catch((err) => {
       if (err.name !== "AbortError") {
-        onEvent({ type: "error", error: err.message || "Connection failed" });
+        if (err instanceof TypeError && err.message.includes("fetch")) {
+          onEvent({
+            type: "error",
+            error:
+              `Cannot reach the backend at ${API_URL}. ` +
+              (isLocalhost()
+                ? "Make sure the backend is running on port 4000."
+                : "The server may be starting up, please try again in a moment."),
+          });
+        } else {
+          onEvent({ type: "error", error: err.message || "Connection failed" });
+        }
       }
     });
 
