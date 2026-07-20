@@ -113,6 +113,14 @@ export function generateStream(
   const onAbort = () => controller.abort();
   signal?.addEventListener("abort", onAbort);
 
+  const streamTimeout = setTimeout(() => {
+    controller.abort();
+    onEvent({
+      type: "error",
+      error: "Generation is taking longer than expected. The server may be under heavy load — please try again.",
+    });
+  }, 300_000);
+
   fetch(url, { signal: controller.signal })
     .then(async (res) => {
       if (!res.ok) {
@@ -159,19 +167,24 @@ export function generateStream(
         if (err instanceof TypeError && err.message.includes("fetch")) {
           onEvent({
             type: "error",
-            error:
-              `Cannot reach the backend at ${API_URL}. ` +
-              (isLocalhost()
-                ? "Make sure the backend is running on port 4000."
-                : "The server may be starting up, please try again in a moment."),
+            error: isLocalhost()
+              ? "Cannot reach the backend. Make sure it's running on port 4000."
+              : "Cannot reach the server. It may be starting up — please try again in a moment.",
           });
         } else {
-          onEvent({ type: "error", error: err.message || "Connection failed" });
+          onEvent({
+            type: "error",
+            error: "Connection lost during generation. Click Try again to restart.",
+          });
         }
       }
+    })
+    .finally(() => {
+      clearTimeout(streamTimeout);
     });
 
   return () => {
+    clearTimeout(streamTimeout);
     signal?.removeEventListener("abort", onAbort);
     controller.abort();
   };
