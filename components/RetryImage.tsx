@@ -2,33 +2,25 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 
-function getProxyUrl(url: string): string {
-  if (typeof window === "undefined") return url;
+function getApiBase(): string {
+  if (typeof window === "undefined") return "http://localhost:4000";
   const envApi = process.env.NEXT_PUBLIC_API_URL;
-  const apiBase =
-    envApi && !envApi.includes("localhost") ? envApi : "http://localhost:4000";
-  return `${apiBase}/proxy-image?url=${encodeURIComponent(url)}`;
+  return envApi && !envApi.includes("localhost") ? envApi : "http://localhost:4000";
+}
+
+function getProxyUrl(url: string): string {
+  return `${getApiBase()}/proxy-image?url=${encodeURIComponent(url)}`;
 }
 
 interface Props {
   src: string;
   alt: string;
   className?: string;
-  retryDelay?: number;
-  maxRetries?: number;
 }
 
-export default function RetryImage({
-  src,
-  alt,
-  className = "",
-  retryDelay = 4000,
-  maxRetries = 5,
-}: Props) {
-  const [attempt, setAttempt] = useState(0);
-  const [failed, setFailed] = useState(false);
-  const [loaded, setLoaded] = useState(false);
-  const [useProxy, setUseProxy] = useState(false);
+export default function RetryImage({ src, alt, className = "" }: Props) {
+  const [phase, setPhase] = useState<"loading" | "ready" | "failed">("loading");
+  const [attempts, setAttempts] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -38,28 +30,14 @@ export default function RetryImage({
   }, []);
 
   const handleError = useCallback(() => {
-    if (attempt < maxRetries) {
-      timerRef.current = setTimeout(() => {
-        setAttempt((a) => a + 1);
-      }, retryDelay);
-    } else if (!useProxy) {
-      // After all direct retries exhausted, try proxy
-      setUseProxy(true);
-      setAttempt(0);
-      setFailed(false);
-    } else {
-      setFailed(true);
-    }
-  }, [attempt, maxRetries, retryDelay, useProxy]);
-
-  const handleLoad = useCallback(() => {
-    setLoaded(true);
-    setFailed(false);
+    setAttempts((a) => a + 1);
   }, []);
 
-  const currentSrc = useProxy ? getProxyUrl(src) : src;
+  const handleLoad = useCallback(() => {
+    setPhase("ready");
+  }, []);
 
-  if (failed) {
+  if (phase === "failed") {
     return (
       <div
         className={`${className} flex flex-col items-center justify-center bg-surface-container-lowest text-[11px] text-outline-variant gap-2`}
@@ -74,7 +52,8 @@ export default function RetryImage({
 
   return (
     <>
-      {!loaded && (
+      {/* Loading shimmer */}
+      {phase === "loading" && (
         <div
           className={`${className} absolute inset-0 z-0`}
           style={{
@@ -85,17 +64,36 @@ export default function RetryImage({
           }}
         />
       )}
-      <img
-        key={`${src}-${useProxy ? "proxy" : "direct"}-${attempt}`}
-        src={currentSrc}
-        alt={alt}
-        className={`${className} relative z-10 transition-opacity duration-300 ${
-          loaded ? "opacity-100" : "opacity-0"
-        }`}
-        onError={handleError}
-        onLoad={handleLoad}
-        loading="eager"
-      />
+
+      {/* Try direct first (fast if already cached) */}
+      {attempts === 0 && (
+        <img
+          key={`direct-${src}`}
+          src={src}
+          alt={alt}
+          className={`${className} relative z-10 transition-opacity duration-300 ${
+            phase === "ready" ? "opacity-100" : "opacity-0 absolute inset-0"
+          }`}
+          onError={handleError}
+          onLoad={handleLoad}
+          loading="eager"
+        />
+      )}
+
+      {/* Switch to proxy — it waits up to 120s server-side */}
+      {attempts > 0 && (
+        <img
+          key={`proxy-${src}-${attempts}`}
+          src={getProxyUrl(src)}
+          alt={alt}
+          className={`${className} relative z-10 transition-opacity duration-300 ${
+            phase === "ready" ? "opacity-100" : "opacity-0 absolute inset-0"
+          }`}
+          onError={() => setPhase("failed")}
+          onLoad={handleLoad}
+          loading="eager"
+        />
+      )}
     </>
   );
 }
