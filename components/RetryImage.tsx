@@ -2,16 +2,6 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 
-function getApiBase(): string {
-  if (typeof window === "undefined") return "http://localhost:4000";
-  const envApi = process.env.NEXT_PUBLIC_API_URL;
-  return envApi && !envApi.includes("localhost") ? envApi : "http://localhost:4000";
-}
-
-function getProxyUrl(url: string): string {
-  return `${getApiBase()}/proxy-image?url=${encodeURIComponent(url)}`;
-}
-
 interface Props {
   src: string;
   alt: string;
@@ -20,7 +10,7 @@ interface Props {
 
 export default function RetryImage({ src, alt, className = "" }: Props) {
   const [phase, setPhase] = useState<"loading" | "ready" | "failed">("loading");
-  const [attempts, setAttempts] = useState(0);
+  const [attempt, setAttempt] = useState(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -30,8 +20,12 @@ export default function RetryImage({ src, alt, className = "" }: Props) {
   }, []);
 
   const handleError = useCallback(() => {
-    setAttempts((a) => a + 1);
-  }, []);
+    if (attempt < 3) {
+      timerRef.current = setTimeout(() => setAttempt((a) => a + 1), 5000);
+    } else {
+      setPhase("failed");
+    }
+  }, [attempt]);
 
   const handleLoad = useCallback(() => {
     setPhase("ready");
@@ -52,7 +46,6 @@ export default function RetryImage({ src, alt, className = "" }: Props) {
 
   return (
     <>
-      {/* Loading shimmer */}
       {phase === "loading" && (
         <div
           className={`${className} absolute inset-0 z-0`}
@@ -64,36 +57,17 @@ export default function RetryImage({ src, alt, className = "" }: Props) {
           }}
         />
       )}
-
-      {/* Try direct first (fast if already cached) */}
-      {attempts === 0 && (
-        <img
-          key={`direct-${src}`}
-          src={src}
-          alt={alt}
-          className={`${className} relative z-10 transition-opacity duration-300 ${
-            phase === "ready" ? "opacity-100" : "opacity-0 absolute inset-0"
-          }`}
-          onError={handleError}
-          onLoad={handleLoad}
-          loading="eager"
-        />
-      )}
-
-      {/* Switch to proxy — it waits up to 120s server-side */}
-      {attempts > 0 && (
-        <img
-          key={`proxy-${src}-${attempts}`}
-          src={getProxyUrl(src)}
-          alt={alt}
-          className={`${className} relative z-10 transition-opacity duration-300 ${
-            phase === "ready" ? "opacity-100" : "opacity-0 absolute inset-0"
-          }`}
-          onError={() => setPhase("failed")}
-          onLoad={handleLoad}
-          loading="eager"
-        />
-      )}
+      <img
+        key={`${src}-${attempt}`}
+        src={src}
+        alt={alt}
+        className={`${className} relative z-10 transition-opacity duration-300 ${
+          phase === "ready" ? "opacity-100" : "opacity-0 absolute inset-0"
+        }`}
+        onError={handleError}
+        onLoad={handleLoad}
+        loading="eager"
+      />
     </>
   );
 }
