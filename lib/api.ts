@@ -49,7 +49,7 @@ function getApiUrl(): string {
 
 const API_URL = getApiUrl();
 
-const REQUEST_TIMEOUT = 180_000;
+const REQUEST_TIMEOUT = 300_000;
 
 function isLocalhost(): boolean {
   if (typeof window === "undefined") return false;
@@ -119,7 +119,7 @@ export function generateStream(
       type: "error",
       error: "Generation is taking longer than expected. The server may be under heavy load — please try again.",
     });
-  }, 300_000);
+  }, 600_000);
 
   fetch(url, { signal: controller.signal })
     .then(async (res) => {
