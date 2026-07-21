@@ -13,6 +13,7 @@ import {
 import type { GenerateResult } from "@/lib/api";
 import ScoreBreakdown from "./ScoreBreakdown";
 import CandidateGrid from "./CandidateGrid";
+import RetryImage from "./RetryImage";
 
 interface Props {
   result: GenerateResult;
@@ -64,7 +65,7 @@ export default function ResultCard({ result, onImageClick }: Props) {
         <div className="absolute -inset-1 bg-gradient-to-r from-violet-600/10 via-indigo-500/5 to-cyan-500/10 rounded-[24px] blur-xl opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
         <div className="relative ui-card-glow overflow-hidden">
           <div className="aspect-[4/3] sm:aspect-[16/9] relative">
-            <img
+            <RetryImage
               src={result.bestImageUrl}
               alt="Generated image"
               className="w-full h-full object-cover"
