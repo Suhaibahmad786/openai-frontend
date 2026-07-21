@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
 import type { Candidate } from "@/lib/api";
+import RetryImage from "./RetryImage";
 
 interface Props {
   candidates: Candidate[];
@@ -37,7 +38,7 @@ export default function CandidateGrid({
               }`}
             >
               <div className="aspect-square bg-[#0a0b10]">
-                <img
+                <RetryImage
                   src={candidate.url}
                   alt={`Candidate ${i + 1}`}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
