@@ -18,9 +18,10 @@ import RetryImage from "./RetryImage";
 interface Props {
   result: GenerateResult;
   onImageClick: (url: string) => void;
+  totalTime?: number;
 }
 
-export default function ResultCard({ result, onImageClick }: Props) {
+export default function ResultCard({ result, onImageClick, totalTime }: Props) {
   const [showDetails, setShowDetails] = useState(false);
   const [copied, setCopied] = useState(false);
   const hasRefinement = result.iterations && result.iterations > 1;
