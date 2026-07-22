@@ -10,7 +10,7 @@ import LoadingSkeleton from "@/components/LoadingSkeleton";
 import ErrorCard from "@/components/ErrorCard";
 import Lightbox from "@/components/Lightbox";
 import Footer from "@/components/Footer";
-import { generateStream, type GenerateResult, type SSEEvent } from "@/lib/api";
+import { generateStream, proxyImageUrl, type GenerateResult, type SSEEvent } from "@/lib/api";
 
 interface StepTiming {
   node: string;
@@ -75,7 +75,15 @@ export default function Home() {
                   : [...prev, "critique_loop"]
               );
             }
-            setResult(event.result);
+            const r = event.result;
+            r.bestImageUrl = proxyImageUrl(r.bestImageUrl);
+            if (r.allCandidates) {
+              r.allCandidates = r.allCandidates.map((c) => ({
+                ...c,
+                url: proxyImageUrl(c.url),
+              }));
+            }
+            setResult(r);
           }
           setLoading(false);
           break;
