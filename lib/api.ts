@@ -49,6 +49,11 @@ function getApiUrl(): string {
 
 const API_URL = getApiUrl();
 
+export function proxyImageUrl(url: string): string {
+  if (!url || !url.includes("image.pollinations.ai")) return url;
+  return `${API_URL}/proxy-image?url=${encodeURIComponent(url)}`;
+}
+
 const REQUEST_TIMEOUT = 300_000;
 
 function isLocalhost(): boolean {
