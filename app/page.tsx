@@ -4,7 +4,6 @@ import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
 import PromptInput from "@/components/PromptInput";
-import ProgressTimeline from "@/components/ProgressTimeline";
 import ResultCard from "@/components/ResultCard";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import ErrorCard from "@/components/ErrorCard";
@@ -27,12 +26,15 @@ export default function Home() {
   const [stepTimings, setStepTimings] = useState<StepTiming[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [lastPrompt, setLastPrompt] = useState<string>("");
+  const [resetKey, setResetKey] = useState(0);
   const cancelRef = useRef<(() => void) | null>(null);
 
   const handleGenerate = useCallback((prompt: string) => {
     setLoading(true);
     setResult(null);
     setError(null);
+    if (prompt) setLastPrompt(prompt);
     setCurrentStep(null);
     setCompletedSteps([]);
     setStepTimings([]);
@@ -99,6 +101,16 @@ export default function Home() {
     cancelRef.current = cleanup;
   }, []);
 
+  const handleNewDesign = useCallback(() => {
+    setResult(null);
+    setError(null);
+    setCurrentStep(null);
+    setCompletedSteps([]);
+    setStepTimings([]);
+    setLastPrompt("");
+    setResetKey((k) => k + 1);
+  }, []);
+
   const handleRetry = useCallback(() => {
     if (result?.bestImageUrl) handleGenerate("");
   }, [result, handleGenerate]);
@@ -120,19 +132,19 @@ export default function Home() {
           {/* Brand Header */}
           <Header />
 
-          {/* Editor Workspace + Chips + Button */}
-          <PromptInput onGenerate={handleGenerate} loading={loading} />
-        </div>
-
-        {/* Pipeline Progress */}
-        <div className="w-full max-w-4xl z-10 mt-6">
-          <ProgressTimeline
+          {/* Editor Workspace + Chips + Button + Inline Progress */}
+          <PromptInput
+            onGenerate={handleGenerate}
+            loading={loading}
             currentStep={currentStep}
             completedSteps={completedSteps}
-            show={loading}
             stepTimings={stepTimings}
+            resetKey={resetKey}
           />
+        </div>
 
+        {/* Results */}
+        <div className="w-full max-w-4xl z-10 mt-6">
           <AnimatePresence mode="wait">
             {loading && !result && (
               <motion.div
@@ -173,6 +185,8 @@ export default function Home() {
                 <ResultCard
                   result={result}
                   onImageClick={setLightbox}
+                  onRedesign={() => handleGenerate(lastPrompt)}
+                  onNewDesign={handleNewDesign}
                   totalTime={
                     startTime ? Date.now() - startTime : undefined
                   }

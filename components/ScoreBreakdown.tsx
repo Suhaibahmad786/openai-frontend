@@ -50,7 +50,7 @@ export default function ScoreBreakdown({ breakdown, total }: Props) {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-[11px] font-semibold text-[#4a4e63] uppercase tracking-widest">
           Quality
@@ -62,16 +62,16 @@ export default function ScoreBreakdown({ breakdown, total }: Props) {
           className="flex items-baseline gap-0.5"
         >
           <span
-            className="text-4xl font-bold tabular-nums tracking-tight"
+            className="text-3xl font-bold tabular-nums tracking-tight"
             style={{ color: getScoreColor(total) }}
           >
             {total}
           </span>
-          <span className="text-[13px] text-[#3d4059] font-medium">/100</span>
+          <span className="text-[12px] text-[#3d4059] font-medium">/100</span>
         </motion.div>
       </div>
 
-      <div className="space-y-3.5">
+      <div className="space-y-3">
         {breakdown &&
           SCORES.map((score, i) => {
             const value = (breakdown as Record<string, number>)[score.key] || 0;
@@ -81,18 +81,18 @@ export default function ScoreBreakdown({ breakdown, total }: Props) {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.06 + 0.1, duration: 0.3 }}
-                className="space-y-1.5"
+                className="space-y-1"
               >
                 <div className="flex justify-between items-center">
-                  <span className="text-[12px] text-[#6b7094] font-medium">
+                  <span className="text-[11px] text-[#6b7094] font-medium">
                     {score.label}
                   </span>
                   <span
-                    className="text-[12px] font-bold tabular-nums"
+                    className="text-[11px] font-bold tabular-nums"
                     style={{ color: score.color }}
                   >
                     {value}
-                    <span className="text-[10px] font-medium opacity-50">
+                    <span className="text-[9px] font-medium opacity-50">
                       /25
                     </span>
                   </span>

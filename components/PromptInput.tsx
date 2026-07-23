@@ -1,25 +1,43 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 
-const SUGGESTIONS = [
-  "neon falcon with geometric wings",
-  "liquid gold obsidian fluid dynamics",
-  "cyberpunk kyoto in heavy rain",
-  "brutalist architecture floating in void",
+
+
+const STEP_KEYS = [
+  "intent_analyzer",
+  "prompt_expander",
+  "image_generator",
+  "vision_judge",
+  "selector",
 ];
+
+interface StepTiming {
+  node: string;
+  startTime: number;
+  endTime?: number;
+}
 
 interface Props {
   onGenerate: (prompt: string) => void;
   loading: boolean;
+  currentStep?: string | null;
+  completedSteps?: string[];
+  stepTimings?: StepTiming[];
+  resetKey?: number;
 }
 
-export default function PromptInput({ onGenerate, loading }: Props) {
+export default function PromptInput({ onGenerate, loading, currentStep, completedSteps, stepTimings, resetKey }: Props) {
   const [prompt, setPrompt] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const max = 500;
   const chars = prompt.length;
+
+  useEffect(() => {
+    setPrompt("");
+    textareaRef.current?.focus();
+  }, [resetKey]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -36,11 +54,6 @@ export default function PromptInput({ onGenerate, loading }: Props) {
     textareaRef.current?.focus();
   }, []);
 
-  const handleChipClick = (text: string) => {
-    setPrompt(text);
-    setTimeout(() => textareaRef.current?.focus(), 0);
-  };
-
   const handleSubmit = () => {
     if (prompt.trim() && !loading) onGenerate(prompt.trim());
   };
@@ -49,47 +62,24 @@ export default function PromptInput({ onGenerate, loading }: Props) {
     <>
       {/* Code Input Field */}
       <div className="code-input-field">
-        {/* Header Bar */}
-        <div className="flex items-center justify-between py-2.5 px-4 border-b border-white/5 bg-white/5">
-          <div className="flex items-center gap-2">
-            <div className="flex gap-1.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-error/30" />
-              <div className="w-2.5 h-2.5 rounded-full bg-secondary/30" />
-              <div className="w-2.5 h-2.5 rounded-full bg-primary/30" />
-            </div>
-            <span className="font-label-md text-[12px] text-on-surface-variant ml-4 opacity-40">
-              PROMPT_ENGINE_V4
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              className="material-symbols-outlined text-on-surface-variant hover:text-primary text-[18px] transition-colors cursor-pointer"
-            >
-              tune
-            </button>
-            <button
-              type="button"
-              className="material-symbols-outlined text-on-surface-variant hover:text-primary text-[18px] transition-colors cursor-pointer"
-            >
-              history
-            </button>
-          </div>
-        </div>
+        {/* Inline Pipeline Progress */}
+        {loading && (
+          <InlineProgress currentStep={currentStep} completedSteps={completedSteps} stepTimings={stepTimings} />
+        )}
 
         {/* Textarea Area */}
-        <div className="p-6">
+        <div className="px-5 py-4">
           <textarea
             ref={textareaRef}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value.slice(0, max))}
             placeholder="Describe your architectural vision or artistic concept..."
-            rows={4}
-            className="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-on-surface font-body-md placeholder:text-on-surface-variant/30 resize-none h-48 md:h-64 leading-relaxed"
+            rows={2}
+            className="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-on-surface font-body-md placeholder:text-on-surface-variant/30 resize-none h-20 md:h-24 leading-relaxed"
             disabled={loading}
           />
 
-          <div className="flex justify-between items-end mt-6">
+          <div className="flex justify-between items-end mt-3">
             <div className="flex items-center gap-8">
               <div className="flex flex-col">
                 <span className="font-label-md text-[10px] text-on-surface-variant uppercase opacity-40 mb-1">
@@ -103,14 +93,7 @@ export default function PromptInput({ onGenerate, loading }: Props) {
                   {chars} / {max}
                 </span>
               </div>
-              <div className="hidden md:flex flex-col">
-                <span className="font-label-md text-[10px] text-on-surface-variant uppercase opacity-40 mb-1">
-                  Shortcut
-                </span>
-                <span className="font-label-md text-[11px] text-on-surface-variant/60 bg-white/5 px-2 py-0.5 rounded border border-white/10">
-                  ⌘ + ENTER
-                </span>
-              </div>
+
             </div>
             <div className="flex items-center gap-3">
               <button
@@ -124,23 +107,6 @@ export default function PromptInput({ onGenerate, loading }: Props) {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Prompt Suggestion Chips */}
-      <div className="flex flex-wrap gap-2 py-2">
-        {SUGGESTIONS.map((s, i) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => handleChipClick(s)}
-            disabled={loading}
-            className={`secondary-chip font-label-md ${
-              i === 3 ? "hidden lg:block" : ""
-            }`}
-          >
-            {s}
-          </button>
-        ))}
       </div>
 
       {/* Primary Action Button */}
@@ -166,5 +132,58 @@ export default function PromptInput({ onGenerate, loading }: Props) {
         </button>
       </div>
     </>
+  );
+}
+
+function InlineProgress({
+  currentStep,
+  completedSteps,
+  stepTimings,
+}: {
+  currentStep?: string | null;
+  completedSteps?: string[];
+  stepTimings?: StepTiming[];
+}) {
+  const doneCount = STEP_KEYS.filter((k) => completedSteps?.includes(k)).length;
+  const progress = (doneCount / STEP_KEYS.length) * 100;
+
+  return (
+    <div className="px-4 pt-3 pb-2 border-b border-white/5">
+      <div className="flex items-center gap-1.5 overflow-x-auto">
+        {STEP_KEYS.map((key) => {
+          const isDone = completedSteps?.includes(key);
+          const isActive = currentStep === key;
+          return (
+            <div key={key} className="flex items-center gap-1.5 shrink-0">
+              <div
+                className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold transition-all duration-300 ${
+                  isDone
+                    ? "bg-emerald-500/15 text-emerald-400"
+                    : isActive
+                    ? "bg-violet-500/15 text-violet-400 animate-pulse"
+                    : "bg-white/5 text-[#33364a]"
+                }`}
+              >
+                {isDone ? (
+                  <Check className="w-3 h-3" strokeWidth={3} />
+                ) : (
+                  STEP_KEYS.indexOf(key) + 1
+                )}
+              </div>
+              {STEP_KEYS.indexOf(key) < STEP_KEYS.length - 1 && (
+                <div
+                  className={`w-3 h-px transition-colors duration-300 ${
+                    isDone ? "bg-emerald-500/30" : "bg-white/5"
+                  }`}
+                />
+              )}
+            </div>
+          );
+        })}
+        <span className="ml-2 text-[10px] text-on-surface-variant/40 font-medium tabular-nums shrink-0">
+          {doneCount}/{STEP_KEYS.length}
+        </span>
+      </div>
+    </div>
   );
 }
