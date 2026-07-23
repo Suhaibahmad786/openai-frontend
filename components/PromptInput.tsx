@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Loader2, Check } from "lucide-react";
-
-
+import { Loader2, ArrowUp } from "lucide-react";
 
 const STEP_KEYS = [
   "intent_analyzer",
@@ -60,76 +58,55 @@ export default function PromptInput({ onGenerate, loading, currentStep, complete
 
   return (
     <>
-      {/* Code Input Field */}
       <div className="code-input-field">
-        {/* Inline Pipeline Progress */}
         {loading && (
           <InlineProgress currentStep={currentStep} completedSteps={completedSteps} stepTimings={stepTimings} />
         )}
 
-        {/* Textarea Area */}
-        <div className="px-5 py-4">
+        <div className="px-4 py-3">
           <textarea
             ref={textareaRef}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value.slice(0, max))}
-            placeholder="Describe your architectural vision or artistic concept..."
+            placeholder="Describe your vision..."
             rows={2}
-            className="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-on-surface font-body-md placeholder:text-on-surface-variant/30 resize-none h-20 md:h-24 leading-relaxed"
+            className="w-full bg-transparent border-none focus:ring-0 focus:outline-none text-on-surface text-[14px] placeholder:text-on-surface-variant/25 resize-none h-16 md:h-20 leading-relaxed"
             disabled={loading}
           />
 
-          <div className="flex justify-between items-end mt-3">
-            <div className="flex items-center gap-8">
-              <div className="flex flex-col">
-                <span className="font-label-md text-[10px] text-on-surface-variant uppercase opacity-40 mb-1">
-                  Tokens
-                </span>
-                <span
-                  className={`font-label-md text-[13px] ${
-                    chars > 450 ? "text-error" : "text-on-surface-variant"
-                  }`}
-                >
-                  {chars} / {max}
-                </span>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <div className="h-1 w-16 bg-white/[0.04] rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{
+                    width: `${(chars / max) * 100}%`,
+                    backgroundColor: chars > 450 ? "#ef4444" : chars > 300 ? "#f59e0b" : "rgba(59,130,246,0.3)",
+                  }}
+                />
               </div>
-
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                className="material-symbols-outlined text-outline-variant hover:text-primary transition-colors cursor-pointer"
-                title="Upload Image Reference"
-                style={{ fontSize: "20px" }}
+              <span
+                className={`text-[10px] font-mono tabular-nums ${
+                  chars > 450 ? "text-red-400" : chars > 300 ? "text-amber-400/60" : "text-on-surface-variant/30"
+                }`}
               >
-                add_photo_alternate
-              </button>
+                {chars}/{max}
+              </span>
             </div>
+
+            <button
+              onClick={handleSubmit}
+              disabled={!prompt.trim() || loading}
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 disabled:opacity-20 disabled:cursor-not-allowed bg-blue-600 text-white hover:bg-blue-500 active:scale-90"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <ArrowUp className="w-4 h-4" strokeWidth={2.5} />
+              )}
+            </button>
           </div>
         </div>
-      </div>
-
-      {/* Primary Action Button */}
-      <div className="mt-4 flex justify-center">
-        <button
-          onClick={handleSubmit}
-          disabled={!loading && !prompt.trim()}
-          className="group bg-gradient-to-r from-primary/90 to-primary text-on-primary px-12 py-3.5 rounded-xl font-headline-md text-body-md action-button-glow transition-all active:scale-95 flex items-center gap-3 w-fit disabled:opacity-45 disabled:cursor-not-allowed disabled:shadow-none"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="text-on-primary animate-spin" style={{ fontSize: "20px" }} />
-              Generating...
-            </>
-          ) : (
-            <>
-              <span className="material-symbols-outlined text-on-primary group-hover:rotate-12 transition-transform" style={{ fontSize: "20px" }}>
-                bolt
-              </span>
-              Generate Vision
-            </>
-          )}
-        </button>
       </div>
     </>
   );
@@ -145,12 +122,11 @@ function InlineProgress({
   stepTimings?: StepTiming[];
 }) {
   const doneCount = STEP_KEYS.filter((k) => completedSteps?.includes(k)).length;
-  const progress = (doneCount / STEP_KEYS.length) * 100;
 
   return (
-    <div className="px-4 pt-3 pb-2 border-b border-white/5">
+    <div className="px-4 pt-3 pb-2 border-b border-white/[0.04]">
       <div className="flex items-center gap-1.5 overflow-x-auto">
-        {STEP_KEYS.map((key) => {
+        {STEP_KEYS.map((key, i) => {
           const isDone = completedSteps?.includes(key);
           const isActive = currentStep === key;
           return (
@@ -160,27 +136,27 @@ function InlineProgress({
                   isDone
                     ? "bg-emerald-500/15 text-emerald-400"
                     : isActive
-                    ? "bg-violet-500/15 text-violet-400 animate-pulse"
-                    : "bg-white/5 text-[#33364a]"
+                    ? "bg-blue-500/15 text-blue-400 animate-pulse"
+                    : "bg-white/[0.04] text-white/20"
                 }`}
               >
                 {isDone ? (
-                  <Check className="w-3 h-3" strokeWidth={3} />
+                  <span className="text-[10px]">&#10003;</span>
                 ) : (
-                  STEP_KEYS.indexOf(key) + 1
+                  i + 1
                 )}
               </div>
-              {STEP_KEYS.indexOf(key) < STEP_KEYS.length - 1 && (
+              {i < STEP_KEYS.length - 1 && (
                 <div
                   className={`w-3 h-px transition-colors duration-300 ${
-                    isDone ? "bg-emerald-500/30" : "bg-white/5"
+                    isDone ? "bg-emerald-500/30" : "bg-white/[0.04]"
                   }`}
                 />
               )}
             </div>
           );
         })}
-        <span className="ml-2 text-[10px] text-on-surface-variant/40 font-medium tabular-nums shrink-0">
+        <span className="ml-2 text-[9px] text-on-surface-variant/30 font-mono tabular-nums shrink-0">
           {doneCount}/{STEP_KEYS.length}
         </span>
       </div>
