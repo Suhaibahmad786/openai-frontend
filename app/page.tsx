@@ -111,10 +111,6 @@ export default function Home() {
     setResetKey((k) => k + 1);
   }, []);
 
-  const handleRetry = useCallback(() => {
-    if (result?.bestImageUrl) handleGenerate("");
-  }, [result, handleGenerate]);
-
   const handleCancel = useCallback(() => {
     cancelRef.current?.();
     setLoading(false);
@@ -122,29 +118,35 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Main Workspace */}
-      <main className="flex-grow flex flex-col items-center justify-center p-6 md:p-10 relative">
-        {/* Ambient Background Glow */}
-        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-primary/5 blur-[160px] rounded-full pointer-events-none z-0" />
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      {/* Ambient Background */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-primary/[0.03] blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[400px] bg-secondary/[0.02] blur-[100px] rounded-full" />
+      </div>
 
-        <div className="w-full max-w-4xl workspace-glass rounded-2xl p-6 md:p-10 flex flex-col gap-6 z-10 animate-in fade-in zoom-in-95 duration-700">
-          {/* Brand Header */}
-          <Header />
+      {/* Main */}
+      <main className="flex-grow flex flex-col items-center p-5 md:p-8 relative z-10">
+        <div className="w-full max-w-5xl flex flex-col gap-5">
+          {/* Input Workspace */}
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="workspace-card rounded-2xl p-5 md:p-7"
+          >
+            <Header />
+            <PromptInput
+              onGenerate={handleGenerate}
+              loading={loading}
+              currentStep={currentStep}
+              completedSteps={completedSteps}
+              stepTimings={stepTimings}
+              resetKey={resetKey}
+            />
+          </motion.div>
 
-          {/* Editor Workspace + Chips + Button + Inline Progress */}
-          <PromptInput
-            onGenerate={handleGenerate}
-            loading={loading}
-            currentStep={currentStep}
-            completedSteps={completedSteps}
-            stepTimings={stepTimings}
-            resetKey={resetKey}
-          />
-        </div>
-
-        {/* Results */}
-        <div className="w-full max-w-4xl z-10 mt-6">
+          {/* Results */}
           <AnimatePresence mode="wait">
             {loading && !result && (
               <motion.div
@@ -153,7 +155,6 @@ export default function Home() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="mt-4"
               >
                 <LoadingSkeleton />
               </motion.div>
@@ -164,11 +165,10 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="mt-4"
               >
                 <ErrorCard
                   message={result.error}
-                  onRetry={() => handleGenerate("")}
+                  onRetry={() => handleGenerate(lastPrompt)}
                 />
               </motion.div>
             )}
@@ -176,11 +176,10 @@ export default function Home() {
             {result && result.bestImageUrl && (
               <motion.div
                 key="result"
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-                className="mt-4"
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
               >
                 <ResultCard
                   result={result}
@@ -188,29 +187,29 @@ export default function Home() {
                   onRedesign={() => handleGenerate(lastPrompt)}
                   onNewDesign={handleNewDesign}
                   totalTime={
-                    startTime ? Date.now() - startTime : undefined
+                    startTime ? Math.round((Date.now() - startTime) / 1000) : undefined
                   }
                 />
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
 
-        <AnimatePresence>
-          {error && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="w-full max-w-4xl z-10 mt-4"
-            >
-              <ErrorCard
-                message={error}
-                onRetry={() => handleGenerate("")}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+          {/* Global Error */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+              >
+                <ErrorCard
+                  message={error}
+                  onRetry={() => handleGenerate(lastPrompt)}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </main>
 
       <Footer />
