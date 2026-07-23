@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   title: "Cyberwing Studio | AI Generation Workspace",
   description:
     "High-Fidelity AI Workspace — Generate stunning AI images with intelligent prompt expansion, multi-candidate generation, and automated quality judging.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

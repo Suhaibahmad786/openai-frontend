@@ -2,17 +2,17 @@
 
 export default function Header() {
   return (
-    <div className="flex items-center gap-2.5 mb-5">
-      <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center border border-blue-500/15">
-        <span className="material-symbols-outlined text-blue-400" style={{ fontSize: "16px" }}>
+    <div className="flex items-center gap-3 mb-6">
+      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500/15 to-blue-600/5 flex items-center justify-center border border-blue-500/10">
+        <span className="material-symbols-outlined text-blue-400" style={{ fontSize: "20px" }}>
           vaping_rooms
         </span>
       </div>
       <div>
-        <h1 className="text-[15px] font-semibold text-on-surface leading-tight">
+        <h1 className="text-[20px] font-bold text-white tracking-tight leading-none">
           Cyberwing Studio
         </h1>
-        <p className="text-[9px] uppercase tracking-[0.2em] text-on-surface-variant/40 font-medium">
+        <p className="text-[11px] uppercase tracking-[0.25em] text-slate-400/50 font-medium mt-1">
           AI Generation Workspace
         </p>
       </div>
