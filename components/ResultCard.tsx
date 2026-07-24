@@ -64,30 +64,44 @@ export default function ResultCard({ result, onImageClick, onRedesign, onNewDesi
     <div className="w-full space-y-4">
       {/* Action bar */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {onRedesign && (
             <button
               onClick={onRedesign}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/15 text-blue-400/80 text-[11px] font-medium hover:bg-blue-500/15 hover:text-blue-300 transition-all duration-200"
+              className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-b from-blue-500/15 to-blue-600/10 border border-blue-500/20 text-blue-300 text-[11px] font-semibold hover:from-blue-500/20 hover:to-blue-600/15 hover:border-blue-500/30 hover:text-blue-200 transition-all duration-200 shadow-sm shadow-blue-500/5"
             >
-              <RefreshCw className="w-3 h-3" />
+              <RefreshCw className="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-500" />
               Redesign
             </button>
           )}
           {onNewDesign && (
             <button
               onClick={onNewDesign}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 text-[11px] font-medium hover:bg-white/[0.06] hover:text-slate-300 transition-all duration-200"
+              className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-b from-white/[0.04] to-white/[0.02] border border-white/[0.08] text-slate-300 text-[11px] font-semibold hover:from-white/[0.07] hover:to-white/[0.04] hover:border-white/[0.12] hover:text-white transition-all duration-200"
             >
-              <Zap className="w-3 h-3" />
+              <Zap className="w-3.5 h-3.5 group-hover:scale-110 transition-transform duration-200" />
               New Design
             </button>
           )}
         </div>
+
+        {/* Time chip */}
         {totalTime && (
-          <span className="text-[10px] text-white/20 font-mono tabular-nums">
-            {totalTime}s
-          </span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-500/[0.06] to-cyan-500/[0.04] border border-blue-500/10">
+            <div className="w-5 h-5 rounded bg-blue-500/15 flex items-center justify-center">
+              <span className="material-symbols-outlined text-blue-400" style={{ fontSize: "11px" }}>
+                schedule
+              </span>
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-[13px] text-white font-bold tabular-nums">
+                {totalTime}
+              </span>
+              <span className="text-[10px] text-slate-400/60 font-medium">
+                sec
+              </span>
+            </div>
+          </div>
         )}
       </div>
 
@@ -161,47 +175,64 @@ export default function ResultCard({ result, onImageClick, onRedesign, onNewDesi
             <ScoreBreakdown breakdown={result.breakdown} total={result.score} />
           </div>
 
+          {/* AI Judge Reasoning */}
           <div className="ui-card p-4 flex-1">
-            <div className="flex items-center gap-2 mb-2.5">
-              <div className="w-4 h-4 rounded bg-blue-500/10 flex items-center justify-center">
-                <Sparkles className="w-2.5 h-2.5 text-blue-400/70" />
+            {/* Header with icon */}
+            <div className="flex items-center gap-2.5 mb-3">
+              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-blue-500/15 to-cyan-500/10 flex items-center justify-center border border-blue-500/10">
+                <Sparkles className="w-3 h-3 text-blue-400" />
               </div>
-              <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
+              <h3 className="text-[11px] font-semibold text-slate-300 uppercase tracking-widest">
                 AI Judge Reasoning
               </h3>
             </div>
+
+            {/* Reasoning text */}
             <motion.div
-              animate={{ height: showReasoning ? "auto" : "2.8em" }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              animate={{ height: showReasoning ? "auto" : "3.2em" }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="overflow-hidden"
             >
-              <p className="text-[12px] text-slate-400 leading-relaxed">
+              <p className="text-[12px] text-slate-400/80 leading-[1.7]">
                 {result.reasoning}
               </p>
             </motion.div>
+
+            {/* Toggle */}
             {result.reasoning && result.reasoning.length > 120 && (
               <button
                 onClick={() => setShowReasoning(!showReasoning)}
-                className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-slate-400 transition-colors font-medium mt-1.5"
+                className="flex items-center gap-1.5 text-[10px] text-blue-400/70 hover:text-blue-300 transition-colors font-medium mt-2.5 group"
               >
-                <ChevronDown
-                  className={`w-3 h-3 transition-transform duration-200 ${
-                    showReasoning ? "rotate-180" : ""
-                  }`}
-                />
-                {showReasoning ? "Less" : "Read more"}
+                <div className="w-4 h-4 rounded bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/15 transition-colors">
+                  <ChevronDown
+                    className={`w-2.5 h-2.5 transition-transform duration-200 ${
+                      showReasoning ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
+                {showReasoning ? "Show less" : "Read full reasoning"}
               </button>
             )}
           </div>
 
+          {/* Prompt */}
           <div className="ui-card p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
-                Prompt
-              </h3>
+            {/* Header */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-6 h-6 rounded-md bg-gradient-to-br from-cyan-500/15 to-blue-500/10 flex items-center justify-center border border-cyan-500/10">
+                  <span className="material-symbols-outlined text-cyan-400" style={{ fontSize: "12px" }}>
+                    text_fields
+                  </span>
+                </div>
+                <h3 className="text-[11px] font-semibold text-slate-300 uppercase tracking-widest">
+                  Prompt
+                </h3>
+              </div>
               <button
                 onClick={handleCopyPrompt}
-                className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-slate-400 transition-colors font-medium"
+                className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-white/[0.03] border border-white/[0.05] text-[10px] text-slate-400 hover:text-slate-300 hover:bg-white/[0.06] transition-all font-medium"
               >
                 {copied ? (
                   <>
@@ -217,75 +248,84 @@ export default function ResultCard({ result, onImageClick, onRedesign, onNewDesi
               </button>
             </div>
 
+            {/* Prompt text */}
             <motion.div
-              animate={{ height: showPromptFull ? "auto" : "2.8em" }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              animate={{ height: showPromptFull ? "auto" : "3.2em" }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               className="overflow-hidden"
             >
-              <p className="text-[12px] text-blue-300/70 font-medium leading-relaxed">
+              <p className="text-[12px] text-blue-300/70 font-medium leading-[1.7]">
                 {result.promptVariations?.[result.promptVariations.length - 1] || "—"}
               </p>
             </motion.div>
+
+            {/* Toggle */}
             {result.promptVariations?.[result.promptVariations.length - 1] &&
               result.promptVariations[result.promptVariations.length - 1].length > 80 && (
               <button
                 onClick={() => setShowPromptFull(!showPromptFull)}
-                className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-slate-400 transition-colors font-medium mt-1.5"
+                className="flex items-center gap-1.5 text-[10px] text-blue-400/70 hover:text-blue-300 transition-colors font-medium mt-2.5 group"
               >
-                <ChevronDown
-                  className={`w-3 h-3 transition-transform duration-200 ${
-                    showPromptFull ? "rotate-180" : ""
-                  }`}
-                />
-                {showPromptFull ? "Less" : "Read more"}
+                <div className="w-4 h-4 rounded bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/15 transition-colors">
+                  <ChevronDown
+                    className={`w-2.5 h-2.5 transition-transform duration-200 ${
+                      showPromptFull ? "rotate-180" : ""
+                    }`}
+                  />
+                </div>
+                {showPromptFull ? "Show less" : "Read full prompt"}
               </button>
             )}
 
+            {/* Intent tags */}
             {result.intent && (
-              <div className="flex flex-wrap gap-1 mt-2.5 pt-2.5 border-t border-white/[0.04]">
+              <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-white/[0.04]">
                 {result.intent.subject && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/[0.06] text-blue-400/70 border border-blue-500/10 font-medium">
+                  <span className="text-[9px] px-2 py-0.5 rounded-md bg-blue-500/[0.06] text-blue-400/70 border border-blue-500/10 font-medium">
                     {result.intent.subject}
                   </span>
                 )}
                 {result.intent.style && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/[0.06] text-cyan-400/70 border border-cyan-500/10 font-medium">
+                  <span className="text-[9px] px-2 py-0.5 rounded-md bg-cyan-500/[0.06] text-cyan-400/70 border border-cyan-500/10 font-medium">
                     {result.intent.style}
                   </span>
                 )}
                 {result.intent.mood && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/[0.06] text-amber-400/70 border border-amber-500/10 font-medium">
+                  <span className="text-[9px] px-2 py-0.5 rounded-md bg-amber-500/[0.06] text-amber-400/70 border border-amber-500/10 font-medium">
                     {result.intent.mood}
                   </span>
                 )}
               </div>
             )}
 
+            {/* Refined prompts */}
             {result.promptVariations && result.promptVariations.length > 1 && (
-              <div className="mt-2.5 pt-2.5 border-t border-white/[0.04]">
+              <div className="mt-3 pt-3 border-t border-white/[0.04]">
                 <button
                   onClick={() => setShowAllPrompts(!showAllPrompts)}
-                  className="flex items-center gap-1 text-[10px] text-slate-500 hover:text-slate-400 transition-colors font-medium"
+                  className="flex items-center gap-1.5 text-[10px] text-slate-500 hover:text-slate-400 transition-colors font-medium group"
                 >
-                  <ChevronDown
-                    className={`w-3 h-3 transition-transform duration-200 ${
-                      showAllPrompts ? "rotate-180" : ""
-                    }`}
-                  />
-                  {showAllPrompts ? "Hide" : "Show"} {result.promptVariations.length - 1} refined
+                  <div className="w-4 h-4 rounded bg-white/[0.04] flex items-center justify-center group-hover:bg-white/[0.06] transition-colors">
+                    <ChevronDown
+                      className={`w-2.5 h-2.5 transition-transform duration-200 ${
+                        showAllPrompts ? "rotate-180" : ""
+                      }`}
+                    />
+                  </div>
+                  {showAllPrompts ? "Hide" : "Show"} {result.promptVariations.length - 1} refined prompts
                 </button>
                 {showAllPrompts && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
-                    className="mt-2 space-y-2"
+                    className="mt-2.5 space-y-2"
                   >
                     {result.promptVariations.slice(0, -1).map((p, i) => (
-                      <div key={i} className="flex items-start gap-2">
-                        <span className="text-[9px] text-slate-600 font-bold mt-0.5 tabular-nums">
+                      <div key={i} className="flex items-start gap-2 px-2.5 py-2 rounded-md bg-white/[0.02] border border-white/[0.03]">
+                        <span className="text-[9px] text-slate-500 font-bold mt-0.5 tabular-nums">
                           {i + 1}
                         </span>
-                        <p className="text-[11px] text-slate-500 leading-relaxed">{p}</p>
+                        <p className="text-[11px] text-slate-400/70 leading-relaxed">{p}</p>
                       </div>
                     ))}
                   </motion.div>
